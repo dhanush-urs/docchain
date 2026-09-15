@@ -38,7 +38,6 @@ const navigation = [
   { name: 'Public Home', href: '/', icon: Home },
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Documents', href: '/dashboard/documents', icon: FileText },
-  { name: 'Blockchain', href: '/dashboard/blockchain', icon: ShieldCheck },
 ]
 
 const adminNavigation = [
