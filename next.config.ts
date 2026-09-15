@@ -2,6 +2,10 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   serverExternalPackages: [],
+  allowedDevOrigins: [
+    "unsenile-subtransversally-julien.ngrok-free.dev",
+    "localhost:3000"
+  ],
   experimental: {
     serverActions: {
       allowedOrigins: process.env.NODE_ENV === 'development' 
