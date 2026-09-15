@@ -1,0 +1,50 @@
+
+> frontend@0.1.0 dev
+> next dev
+
+▲ Next.js 16.3.4 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://10.146.95.18:3000
+- Environments: .env
+✓ Ready in 235ms
+✓ Running next.config.ts took 16ms
+⚠ The "middleware" file convention is deprecated. Please use "proxy" instead.
+
+  To migrate automatically, run:
+  npx @next/codemod@canary middleware-to-proxy .
+
+  Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+- Experiments (use with caution):
+  · serverActions
+
+⚠ Blocked cross-origin request to Next.js dev resource /_next/hmr from "unsenile-subtransversally-julien.ngrok-free.dev".
+Cross-origin access to Next.js dev resources is blocked by default for safety.
+
+To allow this host in development, add it to "allowedDevOrigins" in next.config.js and restart the dev server:
+
+// next.config.js
+module.exports = {
+  allowedDevOrigins: ['unsenile-subtransversally-julien.ngrok-free.dev'],
+}
+
+Read more: https://nextjs.org/docs/app/api-reference/config/next-config-js/allowedDevOrigins
+ GET /api/documents/public 200 in 1618ms (next.js: 134ms, proxy.ts: 48ms, application-code: 1435ms)
+ GET / 200 in 227ms (next.js: 87ms, application-code: 140ms)
+ GET / 200 in 35ms (next.js: 6ms, application-code: 28ms)
+⚠ Found a change in next.config.ts. Restarting the server to apply the changes...
+▲ Next.js 16.3.4 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://10.146.95.18:3000
+- Environments: .env
+✓ Ready in 211ms
+✓ Running next.config.ts took 55ms
+⚠ The "middleware" file convention is deprecated. Please use "proxy" instead.
+
+  To migrate automatically, run:
+  npx @next/codemod@canary middleware-to-proxy .
+
+  Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+- Experiments (use with caution):
+  · serverActions
+
+[?25h

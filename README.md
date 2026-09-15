@@ -1,36 +1,66 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# DocChain
+
+An immutable, blockchain-backed provenance ledger for your documents. Every upload, version, review, and verification is cryptographically recorded and independently verifiable.
+
+## Features
+
+- **Immutable Provenance Ledger**: Automatically records a cryptographic hash of every document action.
+- **Secure Document Sharing**: Generate secure, role-based guest links with expiration dates.
+- **Version Control**: Built-in document versioning that maintains the provenance history across all updates.
+- **End-to-End Security**: Strict Row Level Security (RLS) enforcement integrated with robust Next.js API routing.
+- **Rich Dashboard**: Monitor all activity, block generation, and document verification via an elegant, responsive UI built with Tailwind CSS and Shadcn.
+
+## Tech Stack
+
+- **Frontend**: Next.js 15 (App Router), React 19, Tailwind CSS v4, Shadcn UI
+- **Backend / Database**: Supabase (PostgreSQL), Supabase Storage
+- **Authentication**: Supabase Auth (JWT)
+- **Deployment**: Render / Vercel
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- Node.js 18+
+- A [Supabase](https://supabase.com/) project
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Installation
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/dhanush-urs/docchain.git
+   cd docchain
+   ```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+2. **Install dependencies:**
+   ```bash
+   npm install
+   ```
 
-## Learn More
+3. **Set up Environment Variables:**
+   Create a `.env.local` file in the root directory and add your Supabase credentials:
+   ```env
+   NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+   SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
+   NEXT_PUBLIC_APP_URL=http://localhost:3000
+   ```
+   *(Note: Remove any sensitive keys from tracking before pushing to remote).*
 
-To learn more about Next.js, take a look at the following resources:
+4. **Initialize Database Schema:**
+   Run the SQL scripts provided in `schema.sql` inside your Supabase SQL Editor to set up the tables, functions, and initial Row Level Security (RLS) policies.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+5. **Start the Development Server:**
+   ```bash
+   npm run dev
+   ```
+   Open [http://localhost:3000](http://localhost:3000) to view the application.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Security Considerations
 
-## Deploy on Vercel
+- **Service Role Key**: The `SUPABASE_SERVICE_ROLE_KEY` is highly sensitive and is strictly used in secure server-side API routes to bypass RLS recursion bugs securely. Do NOT expose this key to the client.
+- **CSRF Protection**: When deploying to production, ensure `NEXT_PUBLIC_APP_URL` is configured to your exact domain to securely enforce Next.js server action origin validation.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## License
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+MIT License
