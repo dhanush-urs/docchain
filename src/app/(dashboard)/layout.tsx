@@ -36,7 +36,6 @@ import {
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Documents', href: '/dashboard/documents', icon: FileText },
-  { name: 'Verification', href: '/dashboard/verification', icon: Search },
 ]
 
 const adminNavigation = [
