@@ -15,7 +15,7 @@ import {
 export function WorkspaceSwitcher({ user }: { user: any }) {
   const [workspaces, setWorkspaces] = useState<any[]>([])
   const [activeWorkspace, setActiveWorkspace] = useState<any>(null)
-  const isDhanush = user?.full_name?.toLowerCase().includes('dhanush') || user?.email?.toLowerCase().includes('dhanush')
+  const isDhanush = user?.email === 'dhanushurs667@gmail.com'
 
   useEffect(() => {
     fetchWorkspaces()

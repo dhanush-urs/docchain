@@ -1,5 +1,6 @@
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
+import { cookies } from 'next/headers'
 import crypto from 'crypto'
 
 export async function POST(request: NextRequest) {
@@ -31,7 +32,12 @@ export async function POST(request: NextRequest) {
       .eq('id', user.id)
       .single()
 
+    const activeWorkspaceIdCookie = request.cookies.get('active_workspace_id')?.value
     const isGlobalAdmin = profile?.role === 'admin'
+
+
+    const cookieStore = await cookies()
+    const activeWsId = cookieStore.get('active_workspace_id')?.value
 
     let workspaceId: string
     let memberRole: string = 'admin'
@@ -66,12 +72,20 @@ export async function POST(request: NextRequest) {
       }
     } else {
       if (isGlobalAdmin) {
-         // Global admins can upload to the first available workspace
-         const { data: ws } = await adminSupabase.from('workspaces').select('id').limit(1).single()
+         let ws = null;
+         if (activeWsId) {
+           const { data } = await adminSupabase.from('workspaces').select('id').eq('id', activeWsId).single()
+           ws = data
+         }
+         if (!ws) {
+           const { data } = await adminSupabase.from('workspaces').select('id').limit(1).single()
+           ws = data
+         }
          if (!ws) {
            return NextResponse.json({ error: 'No workspace found in the system' }, { status: 500 })
          }
          workspaceId = ws.id
+
       } else {
         // If new upload, use the first available admin/editor workspace
         const { data: member } = await adminSupabase

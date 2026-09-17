@@ -1,5 +1,6 @@
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
+import { cookies } from 'next/headers'
 
 export async function GET(request: NextRequest) {
   try {
@@ -22,7 +23,12 @@ export async function GET(request: NextRequest) {
     const adminSupabase = createAdminClient()
 
     const { data: profile } = await adminSupabase.from('profiles').select('role').eq('id', user.id).single()
+    const activeWorkspaceIdCookie = request.cookies.get('active_workspace_id')?.value
     const isGlobalAdmin = profile?.role === 'admin'
+
+
+    const cookieStore = await cookies()
+    const activeWsId = cookieStore.get('active_workspace_id')?.value
 
     let targetWorkspaceId = workspaceId;
 
@@ -38,8 +44,17 @@ export async function GET(request: NextRequest) {
 
     if (!targetWorkspaceId) {
       if (isGlobalAdmin) {
-         const { data: ws } = await adminSupabase.from('workspaces').select('id').limit(1).single()
+         let ws = null;
+         if (activeWsId) {
+           const { data } = await adminSupabase.from('workspaces').select('id').eq('id', activeWsId).single()
+           ws = data
+         }
+         if (!ws) {
+           const { data } = await adminSupabase.from('workspaces').select('id').limit(1).single()
+           ws = data
+         }
          if (ws) targetWorkspaceId = ws.id
+
       } else {
         const { data: member } = await adminSupabase
           .from('workspace_members')

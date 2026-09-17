@@ -1,25 +1,26 @@
--- ==============================================================================
--- DOCCHAIN BRANCHING (MULTI-EVENT) SYSTEM
--- ==============================================================================
--- Run this SQL in your Supabase SQL Editor to enable creating new branches.
--- This creates a Postgres function that safely provisions a new Event/Workspace,
--- grants the creator admin rights, and generates the vital Genesis Block.
-
-CREATE OR REPLACE FUNCTION public.create_new_event(event_name text, creator_id uuid)
+-- 1. Create a function to create a new Event Branch (Workspace)
+CREATE OR REPLACE FUNCTION public.create_new_event(
+  event_name text,
+  creator_id uuid
+)
 RETURNS uuid AS $$
 DECLARE
-  new_ws_id uuid;
+  v_workspace_id uuid;
+  v_slug text;
 BEGIN
-  -- 1. Create the new workspace (event branch)
-  INSERT INTO public.workspaces (name, created_by)
-  VALUES (event_name, creator_id)
-  RETURNING id INTO new_ws_id;
+  -- Generate a URL-friendly slug
+  v_slug := lower(regexp_replace(event_name, '[^a-zA-Z0-9]+', '-', 'g')) || '-' || floor(random() * 1000)::text;
 
-  -- 2. Add the creator as the admin of the new event
+  -- Insert the new branch (workspace)
+  INSERT INTO public.workspaces (name, slug, owner_id)
+  VALUES (event_name, v_slug, creator_id)
+  RETURNING id INTO v_workspace_id;
+
+  -- The creator is automatically added as admin
   INSERT INTO public.workspace_members (workspace_id, user_id, role, joined_at)
-  VALUES (new_ws_id, creator_id, 'admin', now());
+  VALUES (v_workspace_id, creator_id, 'admin', now());
 
-  -- 3. Generate the isolated Genesis Block for this new event's blockchain
+  -- Generate the Genesis Block for the new branch
   INSERT INTO public.blockchain_blocks (
     workspace_id, 
     block_index, 
@@ -28,18 +29,25 @@ BEGIN
     merkle_root, 
     nonce, 
     difficulty, 
-    created_at
-  ) VALUES (
-    new_ws_id, 
-    0, 
-    '0000000000000000000000000000000000000000000000000000000000000000', 
-    '0000000000000000000000000000000000000000000000000000000000000000', 
-    '0000000000000000000000000000000000000000000000000000000000000000', 
-    0, 
-    4, 
-    now()
+    created_at,
+    block_hash,
+    transaction_hash,
+    payload_hash
+  )
+  VALUES (
+    v_workspace_id,
+    0,
+    '0000000000000000000000000000000000000000000000000000000000000000',
+    '0000000000000000000000000000000000000000000000000000000000000000',
+    '0000000000000000000000000000000000000000000000000000000000000000',
+    0,
+    4,
+    now(),
+    '0000000000000000000000000000000000000000000000000000000000000000',
+    'genesis',
+    'genesis'
   );
 
-  RETURN new_ws_id;
+  RETURN v_workspace_id;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
