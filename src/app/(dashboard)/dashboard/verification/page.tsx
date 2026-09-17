@@ -146,7 +146,7 @@ export default function DashboardVerificationPage() {
                       type="file"
                       onChange={handleFileChange}
                       className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                      accept=".pdf,.doc,.docx,.txt,.csv,.json,.xml,.md,.xls,.xlsx,.ppt,.pptx,.png,.jpg,.jpeg,.webp,.gif,.svg,.zip"
+                      
                     />
                     <label htmlFor="file-upload" className="cursor-pointer">
                       <div className="mx-auto w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mb-6">
