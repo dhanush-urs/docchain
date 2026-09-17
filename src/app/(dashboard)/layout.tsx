@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarProvider, useSidebar } from '@/components/ui/sidebar'
 import { Separator } from '@/components/ui/separator'
+import { WorkspaceSwitcher } from '@/components/WorkspaceSwitcher'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import {
@@ -115,6 +116,8 @@ function DashboardLayoutInner({ children }: { children: ReactNode }) {
                 </Button>
               </div>
             </SidebarHeader>
+
+            {sidebarOpen && <WorkspaceSwitcher user={user} />}
 
             <SidebarGroup>
               <SidebarMenu>
