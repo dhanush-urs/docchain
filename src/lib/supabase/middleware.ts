@@ -35,6 +35,11 @@ export async function updateSession(request: NextRequest) {
 
   const pathname = request.nextUrl.pathname
 
+  // Redirect authenticated users away from /login
+  if (pathname === '/login' && session) {
+    return NextResponse.redirect(new URL('/dashboard', request.url))
+  }
+
   // Handle guest token for /share/[token]
   if (pathname.startsWith('/share/')) {
     const token = pathname.split('/share/')[1]

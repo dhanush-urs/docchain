@@ -10,5 +10,6 @@ export const config = {
     '/dashboard/:path*',
     '/share/:path*',
     '/api/:path*',
+    '/login',
   ],
 }
