@@ -135,7 +135,6 @@ export default function DashboardDocumentsPage() {
       // 2. Validate filename
       if (!fileToUpload.name.trim()) throw new Error('Invalid filename')
       // 3. Validate MIME type
-      if (!fileToUpload.type) throw new Error('Unknown file type')
       // 4. Validate file size
       if (fileToUpload.size === 0) throw new Error('File is empty')
       // 5. Maximum initial file size: 50MB

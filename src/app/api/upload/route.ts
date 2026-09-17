@@ -105,7 +105,7 @@ export async function POST(request: NextRequest) {
     const { error: uploadError } = await adminSupabase.storage
       .from('documents')
       .upload(storagePath, file, {
-        contentType: file.type,
+        contentType: file.type || "application/octet-stream",
         upsert: false
       })
 
@@ -122,7 +122,7 @@ export async function POST(request: NextRequest) {
           workspace_id: workspaceId,
           filename: file.name,
           original_filename: file.name,
-          mime_type: file.type,
+          mime_type: file.type || "application/octet-stream",
           size_bytes: file.size,
           storage_path: storagePath,
           sha256,
@@ -145,7 +145,7 @@ export async function POST(request: NextRequest) {
         .update({
           filename: file.name,
           original_filename: file.name,
-          mime_type: file.type,
+          mime_type: file.type || "application/octet-stream",
           size_bytes: file.size,
           storage_path: storagePath,
           sha256,
