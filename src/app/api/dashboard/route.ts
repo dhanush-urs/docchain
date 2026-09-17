@@ -12,19 +12,33 @@ export async function GET(request: NextRequest) {
 
     const adminSupabase = createAdminClient()
 
-    // 1. Get workspace safely
-    const { data: member } = await adminSupabase
-      .from('workspace_members')
-      .select('workspace_id')
-      .eq('user_id', user.id)
-      .limit(1)
-      .single()
 
-    if (!member) {
-      return NextResponse.json({ error: 'Not a member of any workspace' }, { status: 403 })
+    const { data: profile } = await adminSupabase.from('profiles').select('role').eq('id', user.id).single()
+    const isGlobalAdmin = profile?.role === 'admin'
+
+    let workspaceId: string
+
+    if (isGlobalAdmin) {
+       const { data: ws } = await adminSupabase.from('workspaces').select('id').limit(1).single()
+       if (!ws) {
+         return NextResponse.json({ error: 'No workspace found' }, { status: 404 })
+       }
+       workspaceId = ws.id
+    } else {
+      // 1. Get workspace safely
+      const { data: member } = await adminSupabase
+        .from('workspace_members')
+        .select('workspace_id')
+        .eq('user_id', user.id)
+        .limit(1)
+        .single()
+
+      if (!member) {
+        return NextResponse.json({ error: 'Not a member of any workspace' }, { status: 403 })
+      }
+      workspaceId = member.workspace_id
     }
 
-    const workspaceId = member.workspace_id
 
     // 2. Fetch stats
     const [docsRes, blocksRes, verifiedRes, docsWithVersions, eventsRes] = await Promise.all([

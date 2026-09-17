@@ -24,8 +24,17 @@ export async function POST(request: NextRequest) {
     // Check permissions using admin client
     const adminSupabase = createAdminClient()
     
+    // Get user global profile
+    const { data: profile } = await adminSupabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single()
+
+    const isGlobalAdmin = profile?.role === 'admin'
+
     let workspaceId: string
-    let memberRole: string
+    let memberRole: string = 'admin'
 
     if (targetDocumentId) {
       // If updating, get the document's workspace
@@ -41,18 +50,44 @@ export async function POST(request: NextRequest) {
       
       workspaceId = existingDoc.workspace_id
       
-      // Check permissions for this specific workspace
-      const { data: member } = await adminSupabase
-        .from('workspace_members')
-        .select('role')
-        .eq('user_id', user.id)
-        .eq('workspace_id', workspaceId)
-        .single()
-        
-      if (!member || !['admin', 'editor'].includes(member.role)) {
-        return NextResponse.json({ error: 'Insufficient permissions for this document' }, { status: 403 })
+      if (!isGlobalAdmin) {
+        // Check permissions for this specific workspace
+        const { data: member } = await adminSupabase
+          .from('workspace_members')
+          .select('role')
+          .eq('user_id', user.id)
+          .eq('workspace_id', workspaceId)
+          .single()
+          
+        if (!member || !['admin', 'editor'].includes(member.role)) {
+          return NextResponse.json({ error: 'Insufficient permissions for this document' }, { status: 403 })
+        }
+        memberRole = member.role
       }
-      memberRole = member.role
+    } else {
+      if (isGlobalAdmin) {
+         // Global admins can upload to the first available workspace
+         const { data: ws } = await adminSupabase.from('workspaces').select('id').limit(1).single()
+         if (!ws) {
+           return NextResponse.json({ error: 'No workspace found in the system' }, { status: 500 })
+         }
+         workspaceId = ws.id
+      } else {
+        // If new upload, use the first available admin/editor workspace
+        const { data: member } = await adminSupabase
+          .from('workspace_members')
+          .select('workspace_id, role')
+          .eq('user_id', user.id)
+          .in('role', ['admin', 'editor'])
+          .limit(1)
+          .single()
+
+        if (!member) {
+          return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 })
+        }
+        workspaceId = member.workspace_id
+        memberRole = member.role
+      }
     } else {
       // If new upload, use the first available admin/editor workspace
       const { data: member } = await adminSupabase
