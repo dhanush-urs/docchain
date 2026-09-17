@@ -15,15 +15,16 @@ import {
 export function WorkspaceSwitcher({ user }: { user: any }) {
   const [workspaces, setWorkspaces] = useState<any[]>([])
   const [activeWorkspace, setActiveWorkspace] = useState<any>(null)
-  const isDhanush = user?.email === 'dhanushurs667@gmail.com'
+
 
   useEffect(() => {
     fetchWorkspaces()
   }, [])
 
   const fetchWorkspaces = async () => {
-    const supabase = createClient()
-    const { data } = await supabase.from('workspaces').select('*').order('created_at', { ascending: true })
+    const res = await fetch('/api/workspaces')
+    const json = await res.json()
+    const data = json.workspaces
     if (data && data.length > 0) {
       setWorkspaces(data)
       
@@ -45,27 +46,6 @@ export function WorkspaceSwitcher({ user }: { user: any }) {
     document.cookie = `active_workspace_id=${ws.id}; path=/; max-age=31536000`
     setActiveWorkspace(ws)
     window.location.reload()
-  }
-
-  const createEvent = async () => {
-    const name = prompt('Enter new event/branch name:')
-    if (!name) return
-    
-    // Use the RPC we created in branches.sql
-    const supabase = createClient()
-    const { data: userAuth } = await supabase.auth.getUser()
-    
-    const { data, error } = await supabase.rpc('create_new_event', {
-      event_name: name,
-      creator_id: userAuth.user?.id
-    })
-    
-    if (error) {
-      alert('Error creating event: ' + error.message + '\n\nMake sure you ran branches.sql in Supabase!')
-    } else {
-      document.cookie = `active_workspace_id=${data}; path=/; max-age=31536000`
-      window.location.reload()
-    }
   }
 
   if (!workspaces.length) return null

@@ -1,6 +1,6 @@
 'use client'
 
-import { ReactNode, useState, useEffect } from 'react'
+import { Plus, ReactNode, useState, useEffect } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
@@ -78,6 +78,27 @@ function DashboardLayoutInner({ children }: { children: ReactNode }) {
     fetchUser()
   }, [])
 
+
+  const createBranch = async () => {
+    const name = prompt('Enter new event/branch name:')
+    if (!name) return
+    
+    const supabase = createClient()
+    const { data: userAuth } = await supabase.auth.getUser()
+    
+    const { data, error } = await supabase.rpc('create_new_event', {
+      event_name: name,
+      creator_id: userAuth.user?.id
+    })
+    
+    if (error) {
+      alert('Error creating event: ' + error.message)
+    } else {
+      document.cookie = `active_workspace_id=${data}; path=/; max-age=31536000`
+      window.location.href = '/dashboard'
+    }
+  }
+
   const handleLogout = async () => {
     const supabase = createClient()
     await supabase.auth.signOut()
@@ -129,6 +150,21 @@ function DashboardLayoutInner({ children }: { children: ReactNode }) {
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 ))}
+
+
+                {user?.email === 'dhanushurs667@gmail.com' && (
+                  <>
+                    <SidebarMenuItem>
+                      <Separator className="my-2" />
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton onClick={createBranch} className="gap-3 text-blue-400 hover:text-blue-300">
+                        <Plus className="h-5 w-5 flex-shrink-0" />
+                        <span>Create New Branch</span>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  </>
+                )}
 
                 {user?.role === 'admin' && (
                   <>
