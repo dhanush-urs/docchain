@@ -31,7 +31,7 @@ export default function PublicHomepage() {
         }}
       />
 
-      <div className="relative z-10 flex-1 flex flex-col pt-12 pb-24 h-screen">
+      <div className="relative z-10 flex-1 flex flex-col pt-12 pb-24 min-h-screen">
         {/* Top Login Button is in layout.tsx but let's make sure there is spacing */}
         
         {/* Search Bar */}
@@ -49,7 +49,7 @@ export default function PublicHomepage() {
         </div>
 
         {/* Horizontal Chain Container */}
-        <div className="flex-1 w-full flex items-center">
+        <div className="flex-1 w-full flex items-start">
           <div className="w-full overflow-x-auto pb-12 pt-8 px-8 sm:px-16 custom-scrollbar hide-scroll-arrows">
             <PublicDocumentList searchQuery={searchQuery} />
           </div>

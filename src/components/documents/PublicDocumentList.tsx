@@ -159,6 +159,8 @@ export function PublicDocumentList({ searchQuery = '' }: { searchQuery?: string 
            sha256.toLowerCase().includes(query)
   })
 
+  const workspaces = Array.from(new Set(filteredDocuments.map(doc => doc.workspaces?.name || 'Unknown Branch')))
+
   if (filteredDocuments.length === 0) {
     return (
       <div className="flex w-full items-center justify-center text-blue-400/50 italic h-64">
@@ -167,63 +169,88 @@ export function PublicDocumentList({ searchQuery = '' }: { searchQuery?: string 
     )
   }
 
+
+  const groupedDocs = workspaces.reduce((acc, wsName) => {
+    acc[wsName] = filteredDocuments.filter(doc => (doc.workspaces?.name || 'Unknown Branch') === wsName)
+    return acc
+  }, {} as Record<string, Document[]>)
+
   return (
-    <div className="flex items-center min-w-max">
-      {filteredDocuments.map((doc, index) => {
-        const Icon = MIME_ICONS[doc.mime_type] || FileText
-        const colorClass = getFileColor(doc.mime_type)
-
+    <div className="flex flex-col gap-24 min-w-max pb-32">
+      {workspaces.map((wsName) => {
+        const wsDocs = groupedDocs[wsName]
         return (
-          <div key={doc.id} className="flex items-center">
-            {/* Document Card */}
-            <div 
-              className="w-64 sm:w-72 bg-[#020817]/80 backdrop-blur-md rounded-xl p-5 border border-blue-500/40 shadow-[0_0_20px_rgba(0,100,255,0.2)] hover:shadow-[0_0_30px_rgba(0,150,255,0.4)] transition-all flex flex-col justify-between"
-              style={{ minHeight: '340px' }}
-            >
-              <div>
-                <div className="flex items-center justify-between mb-4">
-                  <span className="text-xs font-mono text-blue-300/70">{getShortId(doc.id)}</span>
-                  {doc.verified && (
-                    <div className="w-6 h-6 rounded-full border-2 border-[#00ffcc] flex items-center justify-center shadow-[0_0_10px_rgba(0,255,204,0.5)]">
-                      <CheckCircle className="w-4 h-4 text-[#00ffcc]" />
-                    </div>
-                  )}
-                </div>
-
-                <div className="mb-4">
-                  <div className={cn("w-12 h-14 rounded flex items-center justify-center mb-3 border", colorClass)}>
-                    <Icon className="w-6 h-6" />
-                  </div>
-                  <h3 className="font-semibold text-lg text-white line-clamp-2 leading-tight mb-2">
-                    {doc.original_filename}
-                  </h3>
-                  <p className="text-sm text-blue-200/60 mb-1">{doc.workspaces?.name}</p>
-                  <p className="text-sm text-blue-200/60 mb-1">
-                    {new Date(doc.created_at).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })}
-                  </p>
-                  <p className="text-sm text-blue-300/80 truncate">
-                    by {doc.uploader?.full_name || doc.uploader?.email || 'Unknown'}
-                  </p>
-                </div>
-              </div>
-
-              <div>
-                <div className="font-mono text-xs text-blue-300/50 mb-4 bg-blue-950/40 p-2 rounded truncate border border-blue-900/30">
-                  {doc.sha256}
-                </div>
-                <a href={`/api/documents/public/download?id=${doc.id}`} target="_blank" rel="noopener noreferrer">
-                  <Button 
-                    variant="outline" 
-                    className="w-full justify-center bg-transparent border-blue-500/50 text-blue-400 hover:bg-blue-500/10 hover:text-blue-300 shadow-[inset_0_0_10px_rgba(0,100,255,0.2)]"
-                  >
-                    View <ArrowRight className="w-4 h-4 ml-2" />
-                  </Button>
-                </a>
-              </div>
+          <div key={wsName} className="flex flex-col">
+            <div className="sticky left-0 mb-8 flex items-center gap-3">
+              <div className="w-2 h-8 bg-blue-500 rounded-full shadow-[0_0_10px_rgba(0,100,255,0.8)]"></div>
+              <h2 className="text-3xl font-bold text-white drop-shadow-[0_0_15px_rgba(0,100,255,0.5)]">
+                {wsName}
+              </h2>
+              <span className="text-blue-400/50 text-sm ml-2 font-mono uppercase tracking-widest px-3 py-1 bg-blue-950/40 rounded-full border border-blue-900/30">
+                Branch
+              </span>
             </div>
+            
+            <div className="flex items-center min-w-max">
+              {wsDocs.map((doc, index) => {
+                const Icon = MIME_ICONS[doc.mime_type] || FileText
+                const colorClass = getFileColor(doc.mime_type)
 
-            {/* Chain Link Cube (unless it's the last item) */}
-            {index < filteredDocuments.length - 1 && <ChainLinkCube />}
+                return (
+                  <div key={doc.id} className="flex items-center">
+                    {/* Document Card */}
+                    <div 
+                      className="w-64 sm:w-72 bg-[#020817]/80 backdrop-blur-md rounded-xl p-5 border border-blue-500/40 shadow-[0_0_20px_rgba(0,100,255,0.2)] hover:shadow-[0_0_30px_rgba(0,150,255,0.4)] transition-all flex flex-col justify-between"
+                      style={{ minHeight: '340px' }}
+                    >
+                      <div>
+                        <div className="flex items-center justify-between mb-4">
+                          <span className="text-xs font-mono text-blue-300/70">{getShortId(doc.id)}</span>
+                          {doc.verified && (
+                            <div className="w-6 h-6 rounded-full border-2 border-[#00ffcc] flex items-center justify-center shadow-[0_0_10px_rgba(0,255,204,0.5)]">
+                              <CheckCircle className="w-4 h-4 text-[#00ffcc]" />
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="mb-4">
+                          <div className={cn("w-12 h-14 rounded flex items-center justify-center mb-3 border", colorClass)}>
+                            <Icon className="w-6 h-6" />
+                          </div>
+                          <h3 className="font-semibold text-lg text-white line-clamp-2 leading-tight mb-2">
+                            {doc.original_filename}
+                          </h3>
+                          <p className="text-sm text-blue-200/60 mb-1">{doc.workspaces?.name}</p>
+                          <p className="text-sm text-blue-200/60 mb-1">
+                            {new Date(doc.created_at).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })}
+                          </p>
+                          <p className="text-sm text-blue-300/80 truncate">
+                            by {doc.uploader?.full_name || doc.uploader?.email || 'Unknown'}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div>
+                        <div className="font-mono text-xs text-blue-300/50 mb-4 bg-blue-950/40 p-2 rounded truncate border border-blue-900/30">
+                          {doc.sha256}
+                        </div>
+                        <a href={`/api/documents/public/download?id=${doc.id}`} target="_blank" rel="noopener noreferrer">
+                          <Button 
+                            variant="outline" 
+                            className="w-full justify-center bg-transparent border-blue-500/50 text-blue-400 hover:bg-blue-500/10 hover:text-blue-300 shadow-[inset_0_0_10px_rgba(0,100,255,0.2)]"
+                          >
+                            View <ArrowRight className="w-4 h-4 ml-2" />
+                          </Button>
+                        </a>
+                      </div>
+                    </div>
+
+                    {/* Chain Link Cube (unless it's the last item) */}
+                    {index < wsDocs.length - 1 && <ChainLinkCube />}
+                  </div>
+                )
+              })}
+            </div>
           </div>
         )
       })}
