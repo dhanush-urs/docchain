@@ -102,21 +102,6 @@ export async function POST(request: NextRequest) {
         workspaceId = member.workspace_id
         memberRole = member.role
       }
-    } else {
-      // If new upload, use the first available admin/editor workspace
-      const { data: member } = await adminSupabase
-        .from('workspace_members')
-        .select('workspace_id, role')
-        .eq('user_id', user.id)
-        .in('role', ['admin', 'editor'])
-        .limit(1)
-        .single()
-
-      if (!member) {
-        return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 })
-      }
-      workspaceId = member.workspace_id
-      memberRole = member.role
     }
 
     // Check file size (50MB limit)

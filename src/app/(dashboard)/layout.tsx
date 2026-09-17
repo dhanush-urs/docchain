@@ -1,6 +1,6 @@
 'use client'
 
-import { Plus, ReactNode, useState, useEffect } from 'react'
+import { ReactNode, useState, useEffect } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
@@ -32,7 +32,7 @@ import {
   Menu,
   X,
   ChevronRight,
-  Home,
+  Home, Plus,
 } from 'lucide-react'
 
 const navigation = [

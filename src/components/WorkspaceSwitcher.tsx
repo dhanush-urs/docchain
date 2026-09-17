@@ -33,7 +33,7 @@ export function WorkspaceSwitcher({ user }: { user: any }) {
       const activeCookie = cookies.find(c => c.trim().startsWith('active_workspace_id='))
       if (activeCookie) {
         const id = activeCookie.split('=')[1]
-        const ws = data.find(w => w.id === id)
+        const ws = data.find((w: any) => w.id === id)
         if (ws) setActiveWorkspace(ws)
         else setActiveWorkspace(data[0])
       } else {
@@ -53,7 +53,7 @@ export function WorkspaceSwitcher({ user }: { user: any }) {
   return (
     <div className="px-4 pb-2">
       <DropdownMenu>
-        <DropdownMenuTrigger asChild>
+        <DropdownMenuTrigger {...{ asChild: true } as any}>
           <Button variant="outline" role="combobox" className="w-full justify-between glass border-white/10 hover:bg-white/5">
             <span className="truncate">{activeWorkspace?.name || 'Select Event'}</span>
             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -66,14 +66,6 @@ export function WorkspaceSwitcher({ user }: { user: any }) {
               <span className="truncate">{ws.name}</span>
             </DropdownMenuItem>
           ))}
-          {isDhanush && (
-            <>
-              <DropdownMenuSeparator className="bg-white/10" />
-              <DropdownMenuItem onClick={createEvent} className="text-blue-400 font-medium cursor-pointer hover:text-blue-300">
-                <Plus className="mr-2 h-4 w-4" /> Create New Event
-              </DropdownMenuItem>
-            </>
-          )}
         </DropdownMenuContent>
       </DropdownMenu>
     </div>

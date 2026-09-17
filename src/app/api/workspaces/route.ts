@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
       
       workspaces = (data || []).map(m => m.workspace).filter(Boolean)
       // sort by created_at
-      workspaces.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+      workspaces.sort((a: any, b: any) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
     }
 
     return NextResponse.json({ workspaces })
