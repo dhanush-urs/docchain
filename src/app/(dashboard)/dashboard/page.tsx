@@ -33,8 +33,7 @@ interface ActivityItem {
 const initialStats: StatItem[] = [
   { label: 'Documents', value: '—', icon: FileText, change: '+0 this week', trend: 'up' },
   { label: 'Versions', value: '—', icon: GitBranch, change: '+0 this week', trend: 'up' },
-  { label: 'Blocks', value: '—', icon: ShieldCheck, change: '+0 this week', trend: 'up' },
-  { label: 'Verified', value: '—', icon: CheckCircle, change: '+0 this week', trend: 'up' },
+{ label: 'Branches', value: '—', icon: GitBranch, change: '+0 this week', trend: 'up' },
   { label: 'Pending Reviews', value: '—', icon: Clock, change: '0 new', trend: 'neutral' },
 ]
 
@@ -58,8 +57,7 @@ export default function DashboardPage() {
         setStats([
           { label: 'Documents', value: fetchedStats.docCount.toString(), icon: FileText, change: '+0 this week', trend: 'up' },
           { label: 'Versions', value: fetchedStats.totalVersions.toString(), icon: GitBranch, change: '+0 this week', trend: 'up' },
-          { label: 'Blocks', value: fetchedStats.blockCount.toString(), icon: ShieldCheck, change: '+0 this week', trend: 'up' },
-          { label: 'Verified', value: fetchedStats.verifiedCount.toString(), icon: CheckCircle, change: '+0 this week', trend: 'up' },
+          { label: 'Branches', value: (fetchedStats.branchesCount || 0).toString(), icon: GitBranch, change: 'Active', trend: 'up' },
           { label: 'Pending Reviews', value: '0', icon: Clock, change: '0 new', trend: 'neutral' },
         ])
 
@@ -105,7 +103,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {stats.map((stat) => (
           <Card key={stat.label} className="glass">
             <CardHeader className="flex flex-row items-center justify-between pb-2">

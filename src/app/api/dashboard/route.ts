@@ -55,11 +55,16 @@ export async function GET(request: NextRequest) {
     }
 
 
+
+    const branchesQuery = isGlobalAdmin 
+      ? adminSupabase.from('workspaces').select('id', { count: 'exact' })
+      : adminSupabase.from('workspace_members').select('id', { count: 'exact' }).eq('user_id', user.id);
+
     // 2. Fetch stats
-    const [docsRes, blocksRes, verifiedRes, docsWithVersions, eventsRes] = await Promise.all([
+    const [docsRes, blocksRes, verifiedRes, docsWithVersions, eventsRes, branchesRes] = await Promise.all([
       adminSupabase.from('documents').select('id', { count: 'exact' }).eq('workspace_id', workspaceId).eq('status', 'active'),
       adminSupabase.from('blockchain_blocks').select('id', { count: 'exact' }).eq('workspace_id', workspaceId),
-      Promise.resolve({ count: 0, data: null, error: null }), // verified column does not exist in schema
+      Promise.resolve({ count: 0, data: null, error: null }),
       adminSupabase.from('documents').select('current_version').eq('workspace_id', workspaceId).eq('status', 'active'),
       adminSupabase
         .from('timeline_events')
@@ -72,7 +77,8 @@ export async function GET(request: NextRequest) {
         `)
         .eq('workspace_id', workspaceId)
         .order('created_at', { ascending: false })
-        .limit(5)
+        .limit(5),
+      branchesQuery
     ])
 
     const totalVersions = (docsWithVersions.data || []).reduce((sum, d) => sum + (d.current_version || 0), 0)
@@ -81,8 +87,10 @@ export async function GET(request: NextRequest) {
       docCount: docsRes.count || 0,
       blockCount: blocksRes.count || 0,
       verifiedCount: verifiedRes.count || 0,
+      branchesCount: branchesRes.count || 0,
       totalVersions
     }
+
 
     return NextResponse.json({ stats, recentActivity: eventsRes.data || [] })
   } catch (error: any) {
