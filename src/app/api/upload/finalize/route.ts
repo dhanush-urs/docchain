@@ -18,7 +18,6 @@ export async function POST(request: Request) {
       nextVersion 
     } = await request.json()
 
-    // 1. Auth check using proper SSR client
     const supabase = await createClient()
     const { data: { user }, error: userError } = await supabase.auth.getUser()
     
@@ -29,149 +28,101 @@ export async function POST(request: Request) {
 
     const adminSupabase = createAdminClient()
 
-    if (!targetDocumentId) {
-      // Create document record
-      const { data: document, error: docError } = await adminSupabase
+    // Run Document Insert/Update AND Latest Block fetch in parallel
+    const docPromise = !targetDocumentId ? adminSupabase
         .from('documents')
         .insert({
           id: documentId,
           workspace_id: workspaceId,
-          filename: filename,
           original_filename: filename,
-          mime_type: mimeType || "application/octet-stream",
+          mime_type: mimeType,
           size_bytes: size,
-          storage_path: storagePath,
-          sha256,
+          sha256: sha256,
           uploaded_by: user.id,
           current_version: 1,
           status: 'active',
           visibility: 'public'
-        })
-        .select()
-        .single()
-
-      if (docError) {
-        console.error('Document creation failed:', docError)
-        return NextResponse.json({ error: 'Document creation failed: ' + docError.message }, { status: 500 })
-      }
-    } else {
-      // Update document record
-      const { error: updateError } = await adminSupabase
+        }) : adminSupabase
         .from('documents')
         .update({
           filename: filename,
           original_filename: filename,
-          mime_type: mimeType || "application/octet-stream",
+          mime_type: mimeType,
           size_bytes: size,
-          storage_path: storagePath,
-          sha256,
-          uploaded_by: user.id,
+          sha256: sha256,
           current_version: nextVersion,
           updated_at: new Date().toISOString()
         })
-        .eq('id', documentId)
+        .eq('id', targetDocumentId)
 
-      if (updateError) {
-        console.error('Document update failed:', updateError)
-        return NextResponse.json({ error: 'Document update failed: ' + updateError.message }, { status: 500 })
-      }
+    const latestBlockPromise = adminSupabase
+      .from('blockchain_blocks')
+      .select('block_hash, block_index')
+      .eq('workspace_id', workspaceId)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single()
+
+    const [docResult, latestBlockResult] = await Promise.all([docPromise, latestBlockPromise])
+
+    if (docResult.error) {
+      console.error('Error with document:', docResult.error)
+      return NextResponse.json({ error: docResult.error.message }, { status: 500 })
     }
 
-    // Create version
-    const { error: versionError } = await adminSupabase
+    // Now calculate block details
+    const latestBlock = latestBlockResult.data
+    const previousHash = latestBlock ? latestBlock.block_hash : '0000000000000000000000000000000000000000000000000000000000000000'
+    const newIndex = latestBlock ? latestBlock.block_index + 1 : 0
+    const timestamp = new Date().toISOString()
+    const transactionString = `${workspaceId}:${documentId}:${sha256}:${timestamp}`
+    const payload = { documentId, filename, fileSize: size, fileType: mimeType, fileHash: sha256, uploadedBy: user.id, version: nextVersion }
+    const transactionHash = crypto.createHash('sha256').update(transactionString).digest('hex')
+    const payloadHash = crypto.createHash('sha256').update(JSON.stringify(payload)).digest('hex')
+    const blockString = `${newIndex}:${previousHash}:${timestamp}:${transactionHash}:${payloadHash}`
+    const blockHash = crypto.createHash('sha256').update(blockString).digest('hex')
+
+    // Run Version Insert, Block Insert, and Timeline Insert in parallel!
+    const versionPromise = adminSupabase
       .from('document_versions')
       .insert({
         document_id: documentId,
         version_number: nextVersion,
-        sha256,
         storage_path: storagePath,
-        size_bytes: size,
+        file_size_bytes: size,
+        sha256: sha256,
         uploaded_by: user.id,
-        change_summary: changeSummary || 'Initial upload'
+        change_summary: changeSummary || (targetDocumentId ? 'New version uploaded' : 'Initial upload')
       })
 
-    if (versionError) {
-      console.error('Version creation failed:', versionError)
-      return NextResponse.json({ error: 'Version creation failed: ' + versionError.message }, { status: 500 })
-    }
-
-    // Append blockchain event
-    const payload = {
-      document_id: documentId,
-      filename: filename,
-      version: nextVersion,
-      sha256,
-      size_bytes: size,
-      uploaded_by: user.id
-    }
-
-    const transactionString = `document_uploaded${user.id}${documentId}${JSON.stringify(payload)}`
-    const transactionHash = crypto.createHash('sha256').update(transactionString).digest('hex')
-    const payloadHash = crypto.createHash('sha256').update(JSON.stringify(payload)).digest('hex')
-
-    const { data: latestBlock } = await adminSupabase
-      .from('blockchain_blocks')
-      .select('block_hash, block_index')
-      .eq('workspace_id', workspaceId)
-      .order('block_index', { ascending: false })
-      .limit(1)
-      .single()
-
-    const previousHash = latestBlock?.block_hash || '0'
-    const blockIndex = (latestBlock?.block_index ?? -1) + 1
-    
-    // Simple PoW
-    let nonce = 0
-    let blockHash = ''
-    const timestamp = new Date().toISOString()
-    while (true) {
-      const blockString = `${previousHash}${transactionHash}${timestamp}${nonce}`
-      blockHash = crypto.createHash('sha256').update(blockString).digest('hex')
-      if (blockHash.startsWith('0000')) break
-      nonce++
-    }
-
-    // Insert block
-    const { data: block, error: blockError } = await adminSupabase
+    const blockPromise = adminSupabase
       .from('blockchain_blocks')
       .insert({
         workspace_id: workspaceId,
-        block_index: blockIndex,
+        block_index: newIndex,
         previous_hash: previousHash,
-        timestamp,
+        block_hash: blockHash,
+        timestamp: timestamp,
         transaction_hash: transactionHash,
         payload_hash: payloadHash,
-        block_hash: blockHash,
-        nonce
+        payload: payload
       })
-      .select('id')
-      .single()
 
-    if (blockError) {
-       console.error('Block creation failed:', blockError)
-    }
-
-    // Insert timeline event
-    if (block) {
-      const { error: timelineError } = await adminSupabase.from('timeline_events').insert({
+    const timelinePromise = adminSupabase.from('timeline_events').insert({
         workspace_id: workspaceId,
         event_type: 'document_uploaded',
         actor_id: user.id,
-        document_id: documentId,
-        metadata: payload,
-        block_id: block.id,
-      })
-      if (timelineError) {
-        console.error('Timeline error:', timelineError)
-      }
-    }
+        description: `Uploaded ${filename} (v${nextVersion})`,
+        metadata: { document_id: documentId, filename, version: nextVersion }
+    })
 
-    return NextResponse.json({
-      documentId,
-      sha256,
-      version: nextVersion,
-      message: 'Document uploaded successfully'
-    }, { status: 201 })
+    const [versionResult, blockResult, timelineResult] = await Promise.all([versionPromise, blockPromise, timelinePromise])
+
+    if (versionResult.error) console.error('Error inserting version:', versionResult.error)
+    if (blockResult.error) console.error('Error inserting block:', blockResult.error)
+    if (timelineResult.error) console.error('Error inserting timeline:', timelineResult.error)
+
+    return NextResponse.json({ success: true, documentId })
 
   } catch (error: any) {
     console.error('Upload finalize error:', error)
