@@ -34,10 +34,16 @@ export function WorkspaceSwitcher({ user }: { user: any }) {
       if (activeCookie) {
         const id = activeCookie.split('=')[1]
         const ws = data.find((w: any) => w.id === id)
-        if (ws) setActiveWorkspace(ws)
-        else setActiveWorkspace(data[0])
+        if (ws) {
+          setActiveWorkspace(ws)
+        } else {
+          setActiveWorkspace(data[0])
+          document.cookie = `active_workspace_id=${data[0].id}; path=/; max-age=31536000`
+          window.location.reload()
+        }
       } else {
         setActiveWorkspace(data[0])
+        document.cookie = `active_workspace_id=${data[0].id}; path=/; max-age=31536000`
       }
     }
   }
