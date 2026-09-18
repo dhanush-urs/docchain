@@ -1,6 +1,6 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
-import { cookies } from 'next/headers'
 import crypto from 'crypto'
 
 export async function POST(request: Request) {
@@ -18,30 +18,16 @@ export async function POST(request: Request) {
       nextVersion 
     } = await request.json()
 
-    // 1. Auth check
-    const cookieStore = await cookies()
-    const supabaseCookie = cookieStore.get('sb-jzrzobdyvxmhlrjmmayk-auth-token')
+    // 1. Auth check using proper SSR client
+    const supabase = await createClient()
+    const { data: { user }, error: userError } = await supabase.auth.getUser()
     
-    if (!supabaseCookie) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    const authData = JSON.parse(supabaseCookie.value)
-    const token = authData[0]
-    
-    if (!token) {
-      return NextResponse.json({ error: 'Invalid auth token' }, { status: 401 })
-    }
-
-    const adminSupabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    )
-
-    const { data: { user }, error: userError } = await adminSupabase.auth.getUser(token)
     if (userError || !user) {
+      console.error('Auth error in finalize:', userError)
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
+
+    const adminSupabase = createAdminClient()
 
     if (!targetDocumentId) {
       // Create document record
@@ -65,6 +51,7 @@ export async function POST(request: Request) {
         .single()
 
       if (docError) {
+        console.error('Document creation failed:', docError)
         return NextResponse.json({ error: 'Document creation failed: ' + docError.message }, { status: 500 })
       }
     } else {
@@ -85,6 +72,7 @@ export async function POST(request: Request) {
         .eq('id', documentId)
 
       if (updateError) {
+        console.error('Document update failed:', updateError)
         return NextResponse.json({ error: 'Document update failed: ' + updateError.message }, { status: 500 })
       }
     }
@@ -103,6 +91,7 @@ export async function POST(request: Request) {
       })
 
     if (versionError) {
+      console.error('Version creation failed:', versionError)
       return NextResponse.json({ error: 'Version creation failed: ' + versionError.message }, { status: 500 })
     }
 
@@ -143,7 +132,7 @@ export async function POST(request: Request) {
     }
 
     // Insert block
-    const { data: block } = await adminSupabase
+    const { data: block, error: blockError } = await adminSupabase
       .from('blockchain_blocks')
       .insert({
         workspace_id: workspaceId,
@@ -157,6 +146,10 @@ export async function POST(request: Request) {
       })
       .select('id')
       .single()
+
+    if (blockError) {
+       console.error('Block creation failed:', blockError)
+    }
 
     // Insert timeline event
     if (block) {
@@ -180,8 +173,8 @@ export async function POST(request: Request) {
       message: 'Document uploaded successfully'
     }, { status: 201 })
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Upload finalize error:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ error: 'Internal server error: ' + error.message }, { status: 500 })
   }
 }

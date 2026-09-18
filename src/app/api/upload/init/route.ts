@@ -1,37 +1,22 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
-import { cookies } from 'next/headers'
 
 export async function POST(request: Request) {
   try {
     const { filename, targetDocumentId, activeWorkspaceId } = await request.json()
 
-    // 1. Auth check
-    const cookieStore = await cookies()
-    const supabaseCookie = cookieStore.get('sb-jzrzobdyvxmhlrjmmayk-auth-token')
+    // 1. Auth check using proper SSR client
+    const supabase = await createClient()
+    const { data: { user }, error: userError } = await supabase.auth.getUser()
     
-    if (!supabaseCookie) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    const authData = JSON.parse(supabaseCookie.value)
-    const token = authData[0]
-    
-    if (!token) {
-      return NextResponse.json({ error: 'Invalid auth token' }, { status: 401 })
-    }
-
-    // Initialize Admin Supabase Client for creating signed URL
-    const adminSupabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    )
-
-    // Verify user
-    const { data: { user }, error: userError } = await adminSupabase.auth.getUser(token)
     if (userError || !user) {
+      console.error('Auth error in init:', userError)
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
+
+    // Initialize Admin Supabase Client for creating signed URL and bypassing RLS on metadata
+    const adminSupabase = createAdminClient()
 
     // 2. Resolve Workspace
     const { data: profile } = await adminSupabase.from('profiles').select('role').eq('id', user.id).single()
@@ -115,20 +100,20 @@ export async function POST(request: Request) {
 
     if (signedError || !signedData) {
       console.error('Error creating signed URL:', signedError)
-      return NextResponse.json({ error: 'Failed to generate upload URL' }, { status: 500 })
+      return NextResponse.json({ error: 'Failed to generate upload URL: ' + signedError?.message }, { status: 500 })
     }
 
     return NextResponse.json({
       signedUrl: signedData.signedUrl,
-      token: signedData.token, // This token allows the client to PUT to the signedUrl
+      token: signedData.token,
       storagePath,
       workspaceId,
       documentId,
       nextVersion
     })
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Upload init error:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ error: 'Internal server error: ' + error.message }, { status: 500 })
   }
 }
