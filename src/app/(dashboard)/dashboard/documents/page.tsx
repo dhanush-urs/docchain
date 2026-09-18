@@ -148,26 +148,60 @@ export default function DashboardDocumentsPage() {
         .map(b => b.toString(16).padStart(2, '0'))
         .join('')
 
-      // Create FormData to send to our API
-      const formData = new FormData()
-      formData.append('file', fileToUpload)
-      formData.append('clientSha256', sha256)
-      if (changeSummary) {
-        formData.append('changeSummary', changeSummary)
-      }
-      if (targetDocumentId) {
-        formData.append('documentId', targetDocumentId)
-      }
-
-      // Upload via backend API which proxies to Edge Function
-      const response = await fetch('/api/upload', {
+      // 1. Get signed URL from backend
+      const initRes = await fetch('/api/upload/init', {
         method: 'POST',
-        body: formData,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          filename: fileToUpload.name,
+          contentType: fileToUpload.type || 'application/octet-stream',
+          targetDocumentId,
+          activeWorkspaceId: document.cookie.split('; ').find(row => row.startsWith('active_workspace_id='))?.split('=')[1]
+        })
       })
 
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || 'Upload failed')
+      if (!initRes.ok) {
+        const errorData = await initRes.json().catch(() => ({}))
+        throw new Error(errorData.error || 'Failed to initialize upload')
+      }
+
+      const { signedUrl, token, storagePath, workspaceId, documentId, nextVersion } = await initRes.json()
+
+      // 2. Upload file directly to Supabase Storage bypassing Vercel limits
+      const uploadRes = await fetch(signedUrl, {
+        method: 'PUT',
+        headers: {
+          'Authorization': 'Bearer ' + token,
+          'Content-Type': fileToUpload.type || 'application/octet-stream'
+        },
+        body: fileToUpload
+      })
+
+      if (!uploadRes.ok) {
+        throw new Error('Failed to upload file to storage')
+      }
+
+      // 3. Finalize upload (write to DB and blockchain)
+      const finalizeRes = await fetch('/api/upload/finalize', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          filename: fileToUpload.name,
+          mimeType: fileToUpload.type || 'application/octet-stream',
+          size: fileToUpload.size,
+          sha256,
+          changeSummary,
+          targetDocumentId,
+          storagePath,
+          workspaceId,
+          documentId,
+          nextVersion
+        })
+      })
+
+      if (!finalizeRes.ok) {
+        const data = await finalizeRes.json()
+        throw new Error(data.error || 'Failed to finalize upload')
       }
 
       setShowUploadDialog(false)
