@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
       .eq('visibility', 'public')
       .eq('status', 'active')
       .order('created_at', { ascending: true })
-      .limit(20)
+      .limit(1000)
 
     if (error) {
       console.error('Error fetching public documents:', error)

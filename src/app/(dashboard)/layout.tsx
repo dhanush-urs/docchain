@@ -33,6 +33,7 @@ import {
   X,
   ChevronRight,
   Home, Plus,
+  Trash2
 } from 'lucide-react'
 
 const navigation = [
@@ -78,6 +79,28 @@ function DashboardLayoutInner({ children }: { children: ReactNode }) {
     fetchUser()
   }, [])
 
+
+  const deleteBranch = async () => {
+    const activeWorkspaceId = document.cookie.split(';').find(c => c.trim().startsWith('active_workspace_id='))?.split('=')[1]
+    if (!activeWorkspaceId) return
+    
+    if (!confirm('Are you absolutely sure you want to delete this active branch? This will delete all documents and blockchain history associated with it. This cannot be undone.')) return
+    
+    try {
+      const res = await fetch('/api/workspaces/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ workspaceId: activeWorkspaceId })
+      })
+      if (!res.ok) throw new Error('Failed to delete branch')
+      
+      // Delete cookie and reload so WorkspaceSwitcher falls back to a different branch
+      document.cookie = 'active_workspace_id=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
+      window.location.href = '/dashboard'
+    } catch (err: any) {
+      alert('Error deleting branch: ' + err.message)
+    }
+  }
 
   const createBranch = async () => {
     const name = prompt('Enter new event/branch name:')
@@ -158,6 +181,12 @@ function DashboardLayoutInner({ children }: { children: ReactNode }) {
                       <SidebarMenuButton onClick={createBranch} className="gap-3 text-blue-400 hover:text-blue-300">
                         <Plus className="h-5 w-5 flex-shrink-0" />
                         <span>Create New Branch</span>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton onClick={deleteBranch} className="gap-3 text-red-400 hover:text-red-300">
+                        <Trash2 className="h-5 w-5 flex-shrink-0" />
+                        <span>Delete Active Branch</span>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
                   </>
