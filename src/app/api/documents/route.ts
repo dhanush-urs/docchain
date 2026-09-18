@@ -205,24 +205,19 @@ export async function DELETE(request: NextRequest) {
 
     const workspaceId = doc.workspace_id
 
-    // Archive document (don't delete provenance)
+    // Delete document versions first to avoid FK constraint errors if cascade is not set
+    await adminSupabase.from('document_versions').delete().eq('document_id', documentId)
+
+    // Delete the document completely
     const { error } = await adminSupabase
       .from('documents')
-      .update({ status: 'archived', updated_at: new Date().toISOString() })
+      .delete()
       .eq('id', documentId)
+      .eq('workspace_id', workspaceId) // ensure we only delete in this branch
 
     if (error) throw error
 
-    // Blockchain event
-    await adminSupabase.rpc('append_blockchain_event', {
-      p_workspace_id: workspaceId,
-      p_event_type: 'document_archived',
-      p_actor_id: user.id,
-      p_document_id: documentId,
-      p_payload: { document_id: documentId }
-    })
-
-    return NextResponse.json({ message: 'Document archived' })
+    return NextResponse.json({ message: 'Document deleted permanently' })
   } catch (error) {
     console.error('Documents DELETE error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

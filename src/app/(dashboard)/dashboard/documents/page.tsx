@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { FileText, Search, Plus, Download, Eye, Copy, MoreVertical, CheckCircle, AlertCircle, FileSpreadsheet, FileCode, FileImage, FileArchive, GitBranch, Loader2 } from 'lucide-react'
+import { FileText, Search, Plus, Download, Eye, Copy, MoreVertical, CheckCircle, AlertCircle, Trash2, FileSpreadsheet, FileCode, FileImage, FileArchive, GitBranch, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -244,7 +244,7 @@ export default function DashboardDocumentsPage() {
   }
 
   const handleDelete = async (docId: string) => {
-    if (!confirm('Archive this document? This will not delete provenance history.')) return
+    if (!confirm('Are you absolutely sure you want to permanently delete this document? This cannot be undone.')) return
 
     try {
       const response = await fetch(`/api/documents?documentId=${docId}`, {
@@ -519,8 +519,8 @@ export default function DashboardDocumentsPage() {
                                 <>
                                   <DropdownMenuSeparator />
                                   <DropdownMenuItem onClick={() => handleDelete(doc.id)} className="text-destructive focus:text-destructive cursor-pointer">
-                                    <AlertCircle className="h-4 w-4 mr-2" />
-                                    <span>Archive</span>
+                                    <Trash2 className="h-4 w-4 mr-2" />
+                                    <span>Delete Document</span>
                                   </DropdownMenuItem>
                                 </>
                               )}
