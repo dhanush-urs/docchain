@@ -294,7 +294,7 @@ export default function DashboardDocumentsPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 space-y-8">
+    <div className="container mx-auto px-4 py-4 md:py-8 space-y-6 md:space-y-8">
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
@@ -452,20 +452,20 @@ export default function DashboardDocumentsPage() {
                 <table className="w-full">
                   <thead>
                     <tr className="border-b border-white/10">
-                      <th className="text-left p-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">Document</th>
-                      <th className="text-left p-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">Type</th>
-                      <th className="text-left p-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">Size</th>
-                      <th className="text-left p-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">Version</th>
-                      <th className="text-left p-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">SHA-256</th>
-                      <th className="text-left p-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">Status</th>
-                      <th className="text-left p-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">Updated</th>
+                      <th className="text-left p-3 text-xs font-medium text-muted-foreground uppercase tracking-wider whitespace-nowrap">Document</th>
+                      <th className="text-left p-3 text-xs font-medium text-muted-foreground uppercase tracking-wider whitespace-nowrap">Type</th>
+                      <th className="text-left p-3 text-xs font-medium text-muted-foreground uppercase tracking-wider whitespace-nowrap">Size</th>
+                      <th className="text-left p-3 text-xs font-medium text-muted-foreground uppercase tracking-wider whitespace-nowrap">Version</th>
+                      <th className="text-left p-3 text-xs font-medium text-muted-foreground uppercase tracking-wider whitespace-nowrap">SHA-256</th>
+                      <th className="text-left p-3 text-xs font-medium text-muted-foreground uppercase tracking-wider whitespace-nowrap">Status</th>
+                      <th className="text-left p-3 text-xs font-medium text-muted-foreground uppercase tracking-wider whitespace-nowrap">Updated</th>
                       <th className="text-right p-3"></th>
                     </tr>
                   </thead>
                   <tbody>
                     {documents.map((doc) => (
                       <tr key={doc.id} className="border-b border-white/5 hover:bg-white/5 transition-colors cursor-pointer" data-testid="document-card" onClick={() => setPreviewDoc(doc)}>
-                        <td className="p-3">
+                        <td className="p-3 whitespace-nowrap">
                           <div className="flex items-center gap-3">
                             <DocumentIcon mimeType={doc.mime_type} className="h-8 w-8 text-primary" />
                             <div>
@@ -474,16 +474,16 @@ export default function DashboardDocumentsPage() {
                             </div>
                           </div>
                         </td>
-                        <td className="p-3 text-sm text-muted-foreground">{doc.mime_type}</td>
-                        <td className="p-3 text-sm">{formatBytes(doc.size_bytes)}</td>
-                        <td className="p-3 font-mono text-sm">v{doc.current_version}</td>
+                        <td className="p-3 text-sm text-muted-foreground whitespace-nowrap">{doc.mime_type}</td>
+                        <td className="p-3 text-sm whitespace-nowrap">{formatBytes(doc.size_bytes)}</td>
+                        <td className="p-3 font-mono text-sm whitespace-nowrap">v{doc.current_version}</td>
                         <td className="p-3 font-mono text-xs truncate max-w-[200px]">{doc.sha256}</td>
                         <td className="p-3">
                           <Badge variant={doc.verified ? 'default' : doc.status === 'archived' ? 'secondary' : 'outline'}>
                             {doc.verified ? 'Verified' : doc.status === 'archived' ? 'Archived' : doc.status}
                           </Badge>
                         </td>
-                        <td className="p-3 text-sm text-muted-foreground">{formatDistanceToNow(doc.updated_at)} ago</td>
+                        <td className="p-3 text-sm text-muted-foreground whitespace-nowrap">{formatDistanceToNow(doc.updated_at)} ago</td>
                         <td className="p-3 text-right" onClick={(e) => e.stopPropagation()}>
                           <DropdownMenu>
                             <DropdownMenuTrigger render={<Button variant="ghost" size="icon" className="h-8 w-8" />}>

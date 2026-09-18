@@ -242,7 +242,7 @@ export function DocumentViewer({ documentId, workspaceId, version }: DocumentVie
           <CardTitle>Document Information</CardTitle>
           <CardDescription>Metadata and provenance summary</CardDescription>
         </CardHeader>
-        <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <CardContent className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
           <div>
             <p className="text-xs text-muted-foreground">Workspace</p>
             <p className="font-medium">{document.workspace?.name}</p>

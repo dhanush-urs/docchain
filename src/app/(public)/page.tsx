@@ -31,11 +31,11 @@ export default function PublicHomepage() {
         }}
       />
 
-      <div className="relative z-10 flex-1 flex flex-col pt-12 pb-24 min-h-screen">
+      <div className="relative z-10 flex-1 flex flex-col pt-8 md:pt-12 pb-16 md:pb-24 min-h-screen">
         {/* Top Login Button is in layout.tsx but let's make sure there is spacing */}
         
         {/* Search Bar */}
-        <div className="container mx-auto px-4 mb-20 max-w-3xl">
+        <div className="container mx-auto px-4 mb-10 md:mb-20 max-w-3xl">
           <div className="relative">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-blue-400/50" />
             <Input
@@ -50,7 +50,7 @@ export default function PublicHomepage() {
 
         {/* Horizontal Chain Container */}
         <div className="flex-1 w-full flex items-start">
-          <div className="w-full overflow-x-auto pb-12 pt-8 px-8 sm:px-16 custom-scrollbar hide-scroll-arrows">
+          <div className="w-full overflow-x-auto pb-8 pt-4 md:pt-8 px-4 sm:px-8 md:px-16 custom-scrollbar hide-scroll-arrows">
             <PublicDocumentList searchQuery={searchQuery} />
           </div>
         </div>

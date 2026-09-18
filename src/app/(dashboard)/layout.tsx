@@ -106,12 +106,9 @@ function DashboardLayoutInner({ children }: { children: ReactNode }) {
   }
 
   return (
-    <div className="min-h-screen bg-background w-full">
+    <div className="flex min-h-screen bg-background w-full">
       <Sidebar
-          className={cn(
-            'border-r border-white/10 bg-background transition-all duration-200',
-            sidebarOpen ? 'w-64' : 'w-20'
-          )}
+          className="border-r border-white/10 bg-background"
           collapsible="icon"
         >
           <SidebarContent>
@@ -232,14 +229,14 @@ function DashboardLayoutInner({ children }: { children: ReactNode }) {
 
         {/* Mobile menu button */}
         <button
-          className="fixed top-4 left-4 z-50 md:hidden glass rounded-lg p-2"
+          className="fixed top-4 left-4 z-50 md:hidden bg-background/80 backdrop-blur-md border border-white/10 rounded-lg p-2 shadow-lg"
           onClick={() => setOpenMobile(true)}
         >
           <Menu className="h-5 w-5" />
         </button>
 
         {/* Main content */}
-        <div className="flex-1 lg:pl-64 transition-all duration-200">
+        <div className="flex-1 transition-all duration-200 w-full overflow-x-hidden pt-16 md:pt-0">
           {children}
         </div>
       </div>
