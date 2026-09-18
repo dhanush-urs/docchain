@@ -159,7 +159,6 @@ export function PublicDocumentList({ searchQuery = '' }: { searchQuery?: string 
     // Check if ALL words match somewhere in the document's searchable fields (AND logic like Google)
     return searchWords.every(word => 
       originalFilename.toLowerCase().includes(word) ||
-      workspaceName.toLowerCase().includes(word) ||
       sha256.toLowerCase().includes(word)
     )
   })
