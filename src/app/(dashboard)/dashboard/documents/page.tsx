@@ -78,6 +78,7 @@ export default function DashboardDocumentsPage() {
   const [changeSummary, setChangeSummary] = useState('')
   const [targetDocumentId, setTargetDocumentId] = useState<string | null>(null)
   const [userRole, setUserRole] = useState<string>('viewer')
+  const [isGlobalAdmin, setIsGlobalAdmin] = useState(false)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [previewDoc, setPreviewDoc] = useState<any | null>(null)
 
@@ -94,9 +95,10 @@ export default function DashboardDocumentsPage() {
         throw new Error(errorData.error || 'Failed to load documents')
       }
 
-      const { documents, userRole } = await response.json()
+      const { documents, userRole, isGlobalAdmin } = await response.json()
       setDocuments(documents || [])
       setUserRole(userRole || 'viewer')
+      setIsGlobalAdmin(!!isGlobalAdmin)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load documents')
     } finally {
@@ -515,7 +517,7 @@ export default function DashboardDocumentsPage() {
                                   </DropdownMenuItem>
                                 </>
                               )}
-                              {userRole === 'admin' && (
+                              {isGlobalAdmin && (
                                 <>
                                   <DropdownMenuSeparator />
                                   <DropdownMenuItem onClick={() => handleDelete(doc.id)} className="text-destructive focus:text-destructive cursor-pointer">

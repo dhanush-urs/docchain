@@ -122,7 +122,7 @@ export async function GET(request: NextRequest) {
         }
       }))
 
-      return NextResponse.json({ document: data, versions: versionsWithUrls, userRole })
+      return NextResponse.json({ document: data, versions: versionsWithUrls, userRole, isGlobalAdmin })
     }
 
     let query = adminSupabase
@@ -148,7 +148,7 @@ export async function GET(request: NextRequest) {
 
     if (error) throw error
 
-    return NextResponse.json({ documents: data, count, userRole })
+    return NextResponse.json({ documents: data, count, userRole, isGlobalAdmin })
   } catch (error) {
     console.error('Documents GET error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
@@ -164,6 +164,10 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    if (user.email !== 'dhanushurs667@gmail.com') {
+      return NextResponse.json({ error: 'Only dhanushurs667@gmail.com can delete documents.' }, { status: 403 })
+    }
+
     const { searchParams } = new URL(request.url)
     const documentId = searchParams.get('documentId')
 
@@ -171,12 +175,7 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'Missing documentId' }, { status: 400 })
     }
 
-    // Check admin role using admin client
     const adminSupabase = createAdminClient()
-    
-
-    const { data: profile } = await adminSupabase.from('profiles').select('role').eq('id', user.id).single()
-    const isGlobalAdmin = profile?.role === 'admin'
 
     // Fetch document first to get its workspace_id
     const { data: doc, error: docError } = await adminSupabase
@@ -188,20 +187,6 @@ export async function DELETE(request: NextRequest) {
     if (docError || !doc) {
       return NextResponse.json({ error: 'Document not found' }, { status: 404 })
     }
-
-    if (!isGlobalAdmin) {
-      const { data: member } = await adminSupabase
-        .from('workspace_members')
-        .select('role')
-        .eq('user_id', user.id)
-        .eq('workspace_id', doc.workspace_id)
-        .single()
-
-      if (!member || member.role !== 'admin') {
-        return NextResponse.json({ error: 'Admin access required for this workspace' }, { status: 403 })
-      }
-    }
-
 
     const workspaceId = doc.workspace_id
 
