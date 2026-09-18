@@ -152,11 +152,16 @@ export function PublicDocumentList({ searchQuery = '' }: { searchQuery?: string 
     const originalFilename = doc.original_filename || ''
     const workspaceName = doc.workspaces?.name || ''
     const sha256 = doc.sha256 || ''
-    const query = (searchQuery || '').toLowerCase()
+    const searchWords = (searchQuery || '').toLowerCase().split(/\s+/).filter(Boolean)
     
-    return originalFilename.toLowerCase().includes(query) ||
-           workspaceName.toLowerCase().includes(query) ||
-           sha256.toLowerCase().includes(query)
+    if (searchWords.length === 0) return true
+    
+    // Check if ALL words match somewhere in the document's searchable fields (AND logic like Google)
+    return searchWords.every(word => 
+      originalFilename.toLowerCase().includes(word) ||
+      workspaceName.toLowerCase().includes(word) ||
+      sha256.toLowerCase().includes(word)
+    )
   })
 
   const workspaces = Array.from(new Set(filteredDocuments.map(doc => doc.workspaces?.name || 'Unknown Branch')))

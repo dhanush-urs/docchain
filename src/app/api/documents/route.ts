@@ -132,7 +132,12 @@ export async function GET(request: NextRequest) {
       .eq('status', status)
 
     if (search) {
-      query = query.ilike('original_filename', `%${search}%`)
+      // Split search into words to match Google-like multi-word search
+      const terms = search.trim().split(/\s+/).filter(Boolean)
+      terms.forEach(term => {
+        // We use inner OR to match across multiple fields, but AND across terms
+        query = query.or(`original_filename.ilike.%${term}%,sha256.ilike.%${term}%`)
+      })
     }
 
     query = query
