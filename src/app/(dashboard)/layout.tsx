@@ -183,12 +183,6 @@ function DashboardLayoutInner({ children }: { children: ReactNode }) {
                         <span>Create New Branch</span>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
-                    <SidebarMenuItem>
-                      <SidebarMenuButton onClick={deleteBranch} className="gap-3 text-red-400 hover:text-red-300">
-                        <Trash2 className="h-5 w-5 flex-shrink-0" />
-                        <span>Delete Active Branch</span>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
                   </>
                 )}
 
