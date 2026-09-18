@@ -190,15 +190,36 @@ export async function DELETE(request: NextRequest) {
 
     const workspaceId = doc.workspace_id
 
+    // Fetch document versions to get storage paths
+    const { data: versions } = await adminSupabase
+      .from('document_versions')
+      .select('storage_path')
+      .eq('document_id', documentId)
+
+    if (versions && versions.length > 0) {
+      const pathsToDelete = versions.map(v => v.storage_path).filter(Boolean)
+      if (pathsToDelete.length > 0) {
+        // Delete files from Supabase Storage
+        await adminSupabase.storage.from('documents').remove(pathsToDelete)
+      }
+    }
+
     // Delete document versions first to avoid FK constraint errors if cascade is not set
     await adminSupabase.from('document_versions').delete().eq('document_id', documentId)
 
-    // Delete the document completely
+    // Delete from timeline events so UI doesn't crash on missing doc
+    await adminSupabase.from('timeline_events').delete().eq('metadata->>document_id', documentId)
+
+    // Optionally delete from blockchain_blocks if we want the "block" gone
+    // We match the payload->>documentId
+    await adminSupabase.from('blockchain_blocks').delete().eq('payload->>documentId', documentId)
+
+    // Delete the document completely from PostgreSQL
     const { error } = await adminSupabase
       .from('documents')
       .delete()
       .eq('id', documentId)
-      .eq('workspace_id', workspaceId) // ensure we only delete in this branch
+      .eq('workspace_id', workspaceId)
 
     if (error) throw error
 
