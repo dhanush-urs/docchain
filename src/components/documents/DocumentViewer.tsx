@@ -306,7 +306,7 @@ export function DocumentViewer({ documentId, workspaceId, version }: DocumentVie
             <div className="relative h-[500px] rounded-lg overflow-hidden bg-muted">
               {document.mime_type === 'application/pdf' ? (
                 <iframe
-                  src={previewUrl}
+                  src={`https://docs.google.com/viewer?url=${encodeURIComponent(previewUrl)}&embedded=true`}
                   className="w-full h-full border-0"
                   title={document.original_filename}
                 />
