@@ -69,9 +69,9 @@ function getShortId(id: string) {
 }
 
 const ChainLinkCube = () => (
-  <div className="flex items-center flex-shrink-0 px-2 sm:px-4">
-    <div className="w-4 sm:w-8 h-[2px] bg-blue-500/50 shadow-[0_0_10px_rgba(0,100,255,0.8)]" />
-    <div className="relative w-12 h-12 flex items-center justify-center">
+  <div className="flex flex-col md:flex-row items-center flex-shrink-0 px-2 sm:px-4 py-2 md:py-0">
+    <div className="h-6 md:h-[2px] w-[2px] md:w-8 bg-blue-500/50 shadow-[0_0_10px_rgba(0,100,255,0.8)]" />
+    <div className="relative w-12 h-12 flex items-center justify-center my-1 md:my-0">
       {/* Glowing Hexagon/Cube SVG */}
       <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-[0_0_15px_rgba(0,100,255,0.8)]">
         <polygon 
@@ -86,7 +86,7 @@ const ChainLinkCube = () => (
         <circle cx="50" cy="50" r="10" fill="rgba(100, 200, 255, 0.8)" filter="blur(4px)" />
       </svg>
     </div>
-    <div className="w-4 sm:w-8 h-[2px] bg-blue-500/50 shadow-[0_0_10px_rgba(0,100,255,0.8)]" />
+    <div className="h-6 md:h-[2px] w-[2px] md:w-8 bg-blue-500/50 shadow-[0_0_10px_rgba(0,100,255,0.8)]" />
   </div>
 )
 
@@ -184,31 +184,31 @@ export function PublicDocumentList({ searchQuery = '' }: { searchQuery?: string 
   }, {} as Record<string, Document[]>)
 
   return (
-    <div className="flex flex-col gap-24 min-w-max pb-32">
+    <div className="flex flex-col gap-16 md:gap-24 w-full md:min-w-max pb-32">
       {workspaces.map((wsName) => {
         const wsDocs = groupedDocs[wsName]
         return (
           <div key={wsName} className="flex flex-col">
-            <div className="sticky left-0 mb-8 flex items-center gap-3">
+            <div className="sticky left-0 mb-6 md:mb-8 flex items-center gap-3">
               <div className="w-2 h-8 bg-blue-500 rounded-full shadow-[0_0_10px_rgba(0,100,255,0.8)]"></div>
-              <h2 className="text-3xl font-bold text-white drop-shadow-[0_0_15px_rgba(0,100,255,0.5)]">
+              <h2 className="text-2xl md:text-3xl font-bold text-white drop-shadow-[0_0_15px_rgba(0,100,255,0.5)] truncate">
                 {wsName}
               </h2>
-              <span className="text-blue-400/50 text-sm ml-2 font-mono uppercase tracking-widest px-3 py-1 bg-blue-950/40 rounded-full border border-blue-900/30">
+              <span className="text-blue-400/50 text-xs md:text-sm ml-2 font-mono uppercase tracking-widest px-2 py-1 md:px-3 md:py-1 bg-blue-950/40 rounded-full border border-blue-900/30 flex-shrink-0">
                 Branch
               </span>
             </div>
             
-            <div className="flex items-center min-w-max">
+            <div className="flex flex-col md:flex-row items-center w-full md:min-w-max pb-4">
               {wsDocs.map((doc, index) => {
                 const Icon = MIME_ICONS[doc.mime_type] || FileText
                 const colorClass = getFileColor(doc.mime_type)
 
                 return (
-                  <div key={doc.id} className="flex items-center">
+                  <div key={doc.id} className="flex flex-col md:flex-row items-center w-full md:w-auto">
                     {/* Document Card */}
                     <div 
-                      className="w-64 sm:w-72 bg-[#020817]/80 backdrop-blur-md rounded-xl p-5 border border-blue-500/40 shadow-[0_0_20px_rgba(0,100,255,0.2)] hover:shadow-[0_0_30px_rgba(0,150,255,0.4)] transition-all flex flex-col justify-between"
+                      className="w-full max-w-sm sm:w-72 bg-[#020817]/80 backdrop-blur-md rounded-xl p-5 border border-blue-500/40 shadow-[0_0_20px_rgba(0,100,255,0.2)] hover:shadow-[0_0_30px_rgba(0,150,255,0.4)] transition-all flex flex-col justify-between"
                       style={{ minHeight: '340px' }}
                     >
                       <div>
