@@ -34,9 +34,11 @@ export async function POST(request: Request) {
         .insert({
           id: documentId,
           workspace_id: workspaceId,
+          filename: filename,
           original_filename: filename,
           mime_type: mimeType,
           size_bytes: size,
+          storage_path: storagePath,
           sha256: sha256,
           uploaded_by: user.id,
           current_version: 1,
@@ -49,6 +51,7 @@ export async function POST(request: Request) {
           original_filename: filename,
           mime_type: mimeType,
           size_bytes: size,
+          storage_path: storagePath,
           sha256: sha256,
           current_version: nextVersion,
           updated_at: new Date().toISOString()
