@@ -682,10 +682,10 @@ BEGIN
   
   v_block_index := v_block_index + 1;
   
-  -- Simple proof of work (find hash with 4 leading zeros)
+  -- Simple proof of work (find hash with 2 leading zeros to make it faster)
   LOOP
     v_block_hash := calculate_block_hash(v_previous_hash, NOW(), v_transaction_hash, v_payload_hash, v_nonce);
-    IF v_block_hash LIKE '0000%' THEN
+    IF v_block_hash LIKE '00%' THEN
       EXIT;
     END IF;
     v_nonce := v_nonce + 1;
