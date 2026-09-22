@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
     // Fetch list of documents
     const { data, error } = await adminSupabase
       .from('documents')
-      .select('*, workspaces(name), uploader:profiles!documents_uploaded_by_fkey(full_name, email)')
+      .select('*, workspaces(name), uploader:profiles!documents_uploaded_by_fkey(full_name, email), document_versions(change_summary, version_number)')
       .eq('visibility', 'public')
       .eq('status', 'active')
       .order('created_at', { ascending: true })

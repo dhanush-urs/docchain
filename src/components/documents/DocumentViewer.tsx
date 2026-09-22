@@ -272,6 +272,18 @@ export function DocumentViewer({ documentId, workspaceId, version }: DocumentVie
             <p className="text-xs text-muted-foreground">Uploaded By</p>
             <p className="font-medium">{document.uploaded_by}</p>
           </div>
+          {(() => {
+            const currentVerObj = versions.find(v => v.version_number === (currentVersion || document.current_version)) || versions[0]
+            if (currentVerObj?.change_summary && currentVerObj.change_summary !== 'Initial upload') {
+              return (
+                <div className="md:col-span-4 mt-2">
+                  <p className="text-xs text-muted-foreground mb-1">Description / Notes</p>
+                  <p className="text-sm bg-muted/50 p-3 rounded-lg border border-white/5 whitespace-pre-wrap">{currentVerObj.change_summary}</p>
+                </div>
+              )
+            }
+            return null
+          })()}
         </CardContent>
       </Card>
 

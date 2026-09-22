@@ -24,6 +24,10 @@ interface Document {
     full_name: string | null
     email: string
   }
+  document_versions?: {
+    change_summary: string
+    version_number: number
+  }[]
 }
 
 const MIME_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -224,6 +228,13 @@ export function PublicDocumentList({ searchQuery = '' }: { searchQuery?: string 
                           <h3 className="font-semibold text-lg text-white line-clamp-2 leading-tight mb-2">
                             {doc.original_filename}
                           </h3>
+                          {(() => {
+                            const latest = doc.document_versions?.find(v => v.version_number === doc.current_version) || doc.document_versions?.[0]
+                            if (latest?.change_summary && latest.change_summary !== 'Initial upload') {
+                              return <p className="text-sm text-gray-300 line-clamp-3 mb-2 italic">"{latest.change_summary}"</p>
+                            }
+                            return null
+                          })()}
                           <p className="text-sm text-blue-200/60 mb-1">{doc.workspaces?.name}</p>
                           <p className="text-sm text-blue-200/60 mb-1">
                             {new Date(doc.created_at).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })}
