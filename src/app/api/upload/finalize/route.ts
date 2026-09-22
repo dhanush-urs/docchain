@@ -92,7 +92,7 @@ export async function POST(request: Request) {
         document_id: documentId,
         version_number: nextVersion,
         storage_path: storagePath,
-        file_size_bytes: size,
+        size_bytes: size,
         sha256: sha256,
         uploaded_by: user.id,
         change_summary: changeSummary || (targetDocumentId ? 'New version uploaded' : 'Initial upload')
