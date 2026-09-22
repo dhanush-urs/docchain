@@ -115,8 +115,8 @@ export async function POST(request: Request) {
         workspace_id: workspaceId,
         event_type: 'document_uploaded',
         actor_id: user.id,
-        description: `Uploaded ${filename} (v${nextVersion})`,
-        metadata: { document_id: documentId, filename, version: nextVersion }
+        document_id: documentId,
+        metadata: { filename, version: nextVersion, description: `Uploaded ${filename} (v${nextVersion})` }
     })
 
     const [versionResult, blockResult, timelineResult] = await Promise.all([versionPromise, blockPromise, timelinePromise])
